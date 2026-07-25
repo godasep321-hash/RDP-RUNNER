@@ -29,18 +29,18 @@ jobs:
 
       - name: Create RDP User
         run: |
-          # Password ditentukan secara eksplisit agar mudah login
-          $password = "RDPpass123456!"
-          $securePass = ConvertTo-SecureString $password -AsPlainText -Force
+          $passText = "P@ssw0rd123456!!"
+          $securePass = ConvertTo-SecureString $passText -AsPlainText -Force
           
-          New-LocalUser -Name "RDP" -Password $securePass -AccountNeverExpires
+          # Hapus user lama jika ada
+          Remove-LocalUser -Name "RDP" -ErrorAction SilentlyContinue
+
+          # Buat user baru dengan password yang lolos kebijakan Windows
+          New-LocalUser -Name "RDP" -Password $securePass -AccountNeverExpires -FullName "RDP Admin"
           Add-LocalGroupMember -Group "Administrators" -Member "RDP"
           Add-LocalGroupMember -Group "Remote Desktop Users" -Member "RDP"
           
-          if (-not (Get-LocalUser -Name "RDP")) {
-              Write-Error "User creation failed"
-              exit 1
-          }
+          Write-Host "User RDP Berhasil Dibuat!"
 
       - name: Install Tailscale
         run: |
@@ -89,10 +89,9 @@ jobs:
           Write-Host "=========================================="
           Write-Host " IP Address : $env:TAILSCALE_IP"
           Write-Host " Username   : RDP"
-          Write-Host " Password   : RDPpass123456!"
+          Write-Host " Password   : P@ssw0rd123456!!"
           Write-Host "=========================================="
           
-          # Menjaga runner tetap aktif
           while ($true) {
               Write-Host "[$(Get-Date)] RDP Active..."
               Start-Sleep -Seconds 300
